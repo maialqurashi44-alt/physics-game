@@ -15,17 +15,52 @@
     canvas {
       display: block;
     }
-    .info {
+    .speed-btn {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 18px;
+      top: 15px;
+      right: 20px;
+      background-color: #ffb300;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    .speed-btn:hover {
+      background-color: #ffd54f;
+    }
+    .speed-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+      overflow: hidden;
+    }
+    .speed-option {
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .speed-option:hover {
+      background: #eee;
     }
   </style>
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
-  <div class="info">Tap or press SPACE to change mass</div>
+  <button class="speed-btn" id="speedButton">Speed</button>
+  <div class="speed-menu" id="speedMenu">
+    <div class="speed-option" data-speed="0.25">Very Slow</div>
+    <div class="speed-option" data-speed="1">Normal</div>
+    <div class="speed-option" data-speed="2">Fast</div>
+  </div>
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -55,14 +90,15 @@
     }
 
     const gravity = 0.5;
+    let timeScale = 1;
 
     function update() {
-      ball.vy += gravity;
-      ball.y += ball.vy;
+      ball.vy += gravity * timeScale;
+      ball.y += ball.vy * timeScale;
 
       if (ball.y + ball.radius > canvas.height) {
         ball.y = canvas.height - ball.radius;
-        ball.vy *= -0.7; // ارتداد
+        ball.vy *= -0.7;
       }
     }
 
@@ -92,18 +128,36 @@
       ball = createBall();
     }
 
-    // التحكم بالكيبورد
+    // Space للكمبيوتر
     window.addEventListener("keydown", (e) => {
       if (e.code === "Space") {
         changeMass();
       }
     });
 
-    // التحكم باللمس / الماوس
-    window.addEventListener("click", () => {
+    // Tap للجوال
+    window.addEventListener("click", (e) => {
+      // إذا ضغط على الزر أو القائمة، لا يغير الكتلة
+      if (e.target.classList.contains("speed-btn") || e.target.classList.contains("speed-option")) return;
       changeMass();
+    });
+
+    // التحكم بالسرعة
+    const speedButton = document.getElementById("speedButton");
+    const speedMenu = document.getElementById("speedMenu");
+
+    speedButton.addEventListener("click", () => {
+      speedMenu.style.display = speedMenu.style.display === "block" ? "none" : "block";
+    });
+
+    document.querySelectorAll(".speed-option").forEach(option => {
+      option.addEventListener("click", () => {
+        timeScale = parseFloat(option.dataset.speed);
+        speedMenu.style.display = "none";
+      });
     });
   </script>
 </body>
 </html>
- 
+
+
