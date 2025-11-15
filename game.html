@@ -95,7 +95,7 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// خلي الكانفس ياخذ كامل الشاشة لكل الأجهزة
+// خلي الكانفس ياخذ كامل الشاشة لأي جهاز
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -103,7 +103,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// الأرضية الآن مرنة وتكون دايم تحت آخر بكسل
+// الأرضية الآن مرنة (دائمًا أسفل الشاشة)
 let groundY = () => canvas.height - 60;
 
 // إعدادات الكورة
@@ -142,20 +142,23 @@ document.getElementById("freezeBtn").onclick = () => {
     freeze = !freeze;
 };
 
-// التفاعل باللمس للجوال
+// تفاعل لمس الجوال
 canvas.addEventListener("touchstart", () => {
     resetBall();
 });
 
-// ===== الرسم =====
+// ===== التحديث والرسم =====
 function update() {
+
+    // تحديث فيزيائي
     if (!freeze) {
         ball.velocity += ball.gravity;
         ball.y += ball.velocity;
 
+        // ارتطام بالأرض
         if (ball.y + ball.radius > groundY()) {
             ball.y = groundY() - ball.radius;
-            ball.velocity = 0;
+            ball.velocity *= -0.35; // ارتداد بسيط
         }
     }
 
@@ -171,16 +174,19 @@ function update() {
     ctx.fillStyle = "#ff9900";
     ctx.fill();
 
-    // ===== رسم الأرقام فوق الكورة =====
+    // ===== القيم الفيزيائية =====
+    let speed = Math.abs(ball.velocity).toFixed(2);
+    let mass = ball.mass.toFixed(0);
+    let momentum = (ball.mass * ball.velocity).toFixed(2);
+
+    // ===== رسم الأرقام فوق الكورة (تتحرك معها) =====
     ctx.fillStyle = "#000";
     ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
 
-    // السرعة
-    ctx.fillText(`Speed: ${ball.gravity}`, ball.x, ball.y - ball.radius - 35);
-
-    // الكتلة
-    ctx.fillText(`Mass: ${ball.mass}`, ball.x, ball.y - ball.radius - 10);
+    ctx.fillText(`Speed: ${speed}`, ball.x, ball.y - ball.radius - 50);
+    ctx.fillText(`Mass: ${mass}`, ball.x, ball.y - ball.radius - 25);
+    ctx.fillText(`Momentum: ${momentum}`, ball.x, ball.y - ball.radius - 0);
 
     requestAnimationFrame(update);
 }
@@ -189,8 +195,10 @@ update();
 </script>
 
 
+
 </body>
 </html>
+
 
 
 
