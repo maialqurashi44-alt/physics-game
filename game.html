@@ -89,13 +89,12 @@
 </div>
 
 <canvas id="gameCanvas"></canvas>
-
 <script>
 // ===== الإعدادات الأساسية =====
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// خلي الكانفس ياخذ كامل الشاشة لأي جهاز
+// توسيع الكانفس لكامل الشاشة
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -103,7 +102,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// الأرضية الآن مرنة (دائمًا أسفل الشاشة)
+// الأرضية — دائمًا أسفل الشاشة
 let groundY = () => canvas.height - 60;
 
 // إعدادات الكورة
@@ -142,7 +141,7 @@ document.getElementById("freezeBtn").onclick = () => {
     freeze = !freeze;
 };
 
-// تفاعل لمس الجوال
+// لمس الجوال يعيد الكورة
 canvas.addEventListener("touchstart", () => {
     resetBall();
 });
@@ -150,8 +149,8 @@ canvas.addEventListener("touchstart", () => {
 // ===== التحديث والرسم =====
 function update() {
 
-    // تحديث فيزيائي
     if (!freeze) {
+        // تسارع السقوط
         ball.velocity += ball.gravity;
         ball.y += ball.velocity;
 
@@ -160,6 +159,11 @@ function update() {
             ball.y = groundY() - ball.radius;
             ball.velocity *= -0.35; // ارتداد بسيط
         }
+    }
+
+    // 🔥 تصفير الحركة إذا شبه متوقفة
+    if (Math.abs(ball.velocity) < 0.2 && ball.y + ball.radius >= groundY() - 1) {
+        ball.velocity = 0;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -174,19 +178,24 @@ function update() {
     ctx.fillStyle = "#ff9900";
     ctx.fill();
 
-    // ===== القيم الفيزيائية =====
+    // حساب السرعة، الكتلة، الزخم
     let speed = Math.abs(ball.velocity).toFixed(2);
     let mass = ball.mass.toFixed(0);
     let momentum = (ball.mass * ball.velocity).toFixed(2);
 
-    // ===== رسم الأرقام فوق الكورة (تتحرك معها) =====
+    // 🔥 تصفير الزخم إذا السرعة صفر
+    if (ball.velocity === 0) {
+        momentum = "0.00";
+    }
+
+    // عرض الأرقام فوق الكورة
     ctx.fillStyle = "#000";
     ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
 
     ctx.fillText(`Speed: ${speed}`, ball.x, ball.y - ball.radius - 50);
     ctx.fillText(`Mass: ${mass}`, ball.x, ball.y - ball.radius - 25);
-    ctx.fillText(`Momentum: ${momentum}`, ball.x, ball.y - ball.radius - 0);
+    ctx.fillText(`Momentum: ${momentum}`, ball.x, ball.y - ball.radius);
 
     requestAnimationFrame(update);
 }
@@ -196,8 +205,10 @@ update();
 
 
 
+
 </body>
 </html>
+
 
 
 
