@@ -171,14 +171,27 @@ function update() {
     ctx.fillStyle = "#ff9900";
     ctx.fill();
 
+    // ===== رسم الأرقام فوق الكورة =====
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+
+    // السرعة
+    ctx.fillText(`Speed: ${ball.gravity}`, ball.x, ball.y - ball.radius - 35);
+
+    // الكتلة
+    ctx.fillText(`Mass: ${ball.mass}`, ball.x, ball.y - ball.radius - 10);
+
     requestAnimationFrame(update);
 }
 
 update();
 </script>
 
+
 </body>
 </html>
+
 
 
 
