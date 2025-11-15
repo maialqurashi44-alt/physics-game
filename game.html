@@ -1,292 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Momentum Physics Game</title>
-  <style>
-    :root {
-      --btn: #ffb300;
-      --btn-light: #ffd54f;
-      --panel-bg: rgba(255,255,255,0.96);
-    }
-    html,body { height:100%; margin:0; }
-    body {
-      background: linear-gradient(135deg,#0d1b2a,#0f2540);
-      font-family: Arial, Helvetica, sans-serif;
-      color:#fff;
-      overflow:hidden;
-    }
-    canvas { display:block; width:100vw; height:100vh; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physics Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
 
-    /* Buttons */
-    .menu-btn {
-      position: absolute;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: 700;
-      background: var(--btn);
-      color:#000;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
-      z-index: 40;
-    }
-    .menu-btn:active { transform: translateY(1px); }
+        canvas {
+            display: block;
+        }
 
-    /* panels */
-    .panel {
-      position: absolute;
-      background: var(--panel-bg);
-      color: #111;
-      border-radius: 10px;
-      padding: 8px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
-      z-index: 39;
-      display:none;
-    }
-    .panel button.opt {
-      display:block;
-      width: 180px;
-      padding: 10px;
-      margin:6px 0;
-      border-radius:8px;
-      border: none;
-      background:#f7f7f7;
-      text-align:left;
-      cursor:pointer;
-      font-weight:600;
-    }
-    .panel button.opt:hover { background:#eef2f6; }
+        /* زر الإيقاف */
+        #freezeBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            font-size: 18px;
+            border: none;
+            background: #ffcc00;
+            border-radius: 10px;
+            cursor: pointer;
+        }
 
-    /* Positions: mass on LEFT, speed on RIGHT */
-    #massButton { left:20px; top:60px; }
-    #massMenu   { left:20px; top:110px; }
-    #speedButton{ right:20px; top:60px; }
-    #speedMenu  { right:20px; top:110px; }
-    #pauseButton{ right:20px; top:220px; }
+        /* تبويبات السرعه */
+        .speedBox {
+            position: absolute;
+            top: 90px;
+            left: 20px; /* مكان الكتلة القديم */
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            width: 120px;
+        }
 
-    /* small responsiveness for mobile */
-    @media (max-width:600px){
-      .panel button.opt { width:140px; }
-    }
+        /* تبويبات الكتلة */
+        .massBox {
+            position: absolute;
+            top: 90px;
+            right: 20px; /* الجهة الثانية */
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            width: 120px;
+        }
 
-    /* info */
-    .info {
-      position: absolute;
-      left: 20px;
-      bottom: 18px;
-      font-size: 14px;
-      opacity: 0.9;
-      z-index: 50;
-      background: rgba(0,0,0,0.25);
-      padding: 6px 10px;
-      border-radius: 8px;
-    }
-  </style>
+        .optionBtn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            border: none;
+            background: #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .optionBtn:hover {
+            background: #ddd;
+        }
+    </style>
 </head>
+
 <body>
-  <canvas id="gameCanvas"></canvas>
 
-  <!-- Mass on the LEFT -->
-  <button id="massButton" class="menu-btn">Mass</button>
-  <div id="massMenu" class="panel" aria-hidden="true">
-    <button class="opt" data-mass="10" data-color="#74c0fc">Small</button>
-    <button class="opt" data-mass="30" data-color="#e599f7">Medium</button>
-    <button class="opt" data-mass="60" data-color="#ff6b6b">Large</button>
-  </div>
+<button id="freezeBtn">إيقاف الوقت</button>
 
-  <!-- Speed on the RIGHT -->
-  <button id="speedButton" class="menu-btn">Speed</button>
-  <div id="speedMenu" class="panel" aria-hidden="true">
-    <button class="opt" data-speed="0.3">Very Slow</button>
-    <button class="opt" data-speed="0.7">Slow</button>
-    <button class="opt" data-speed="1">Normal</button>
-    <button class="opt" data-speed="1.6">Fast</button>
-  </div>
+<div class="speedBox">
+    <strong>السرعة</strong>
+    <button class="optionBtn" onclick="setSpeed(1)">بطيئة</button>
+    <button class="optionBtn" onclick="setSpeed(3)">متوسطة</button>
+    <button class="optionBtn" onclick="setSpeed(6)">سريعة</button>
+</div>
 
-  <!-- Pause -->
-  <button id="pauseButton" class="menu-btn">Pause</button>
+<div class="massBox">
+    <strong>الكتلة</strong>
+    <button class="optionBtn" onclick="setMass(10)">صغيرة</button>
+    <button class="optionBtn" onclick="setMass(20)">متوسطة</button>
+    <button class="optionBtn" onclick="setMass(35)">كبيرة</button>
+</div>
 
-  <div class="info">Tap a menu to change Mass / Speed. Tap canvas or press SPACE to reset ball.</div>
+<canvas id="gameCanvas"></canvas>
 
 <script>
-/* -----------------------
-   Canvas + physics setup
-   ----------------------- */
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// ===== الإعدادات الأساسية =====
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+// خلي الكانفس ياخذ كامل الشاشة لكل الأجهزة
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
-window.addEventListener('resize', resize);
-resize();
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
-let gravity = 0.6;
-let timeScale = 1;
-let paused = false;
+// الأرضية الآن مرنة وتكون دايم تحت آخر بكسل
+let groundY = () => canvas.height - 60;
 
-// ball object
+// إعدادات الكورة
 let ball = {
-  x: canvas.width/2,
-  y: 90,
-  radius: 32,
-  mass: 30,
-  vy: 0,
-  color: '#e599f7'
+    x: canvas.width / 2,
+    y: 50,
+    radius: 20,
+    mass: 20,
+    velocity: 0,
+    gravity: 0.6
 };
 
-function setBallMass(m, col){
-  // keep x same, reset y near top so user sees drop
-  ball.mass = m;
-  ball.color = col || ball.color;
-  ball.radius = 14 + Math.max(8, Math.round(m/2)); // scale radius visually
-  ball.vy = 0;
-  ball.y = Math.min(120, canvas.height * 0.12);
+let freeze = false;
+
+// تغيير السرعة
+function setSpeed(v) {
+    ball.gravity = v;
+    resetBall();
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  // floor line
-  const floorY = canvas.height - 6;
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  ctx.fillRect(0, floorY, canvas.width, 6);
-
-  // ball
-  ctx.beginPath();
-  ctx.fillStyle = ball.color;
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
-  ctx.fill();
-
-  // info box near ball
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(ball.x + ball.radius + 10, ball.y - 34, 120, 70);
-  ctx.fillStyle = '#fff';
-  ctx.font = '14px Arial';
-  ctx.fillText(`m: ${ball.mass}`, ball.x + ball.radius + 16, ball.y - 14);
-  ctx.fillText(`v: ${ball.vy.toFixed(2)}`, ball.x + ball.radius + 16, ball.y + 6);
-  ctx.fillText(`p: ${(Math.abs(ball.mass*ball.vy)).toFixed(2)}`, ball.x + ball.radius + 16, ball.y + 26);
+// تغيير الكتلة
+function setMass(m) {
+    ball.mass = m;
+    ball.radius = m / 2;
+    resetBall();
 }
 
-function update(){
-  if(paused) return;
-
-  // integrate
-  ball.vy += gravity * timeScale;
-  ball.y += ball.vy * timeScale;
-
-  // floor collision
-  const floor = canvas.height - ball.radius;
-  if(ball.y > floor){
-    // snap to floor
-    ball.y = floor;
-    // simple restitution
-    ball.vy *= -0.68;
-    // if bounce is tiny, stop a bit to avoid jitter
-    if(Math.abs(ball.vy) < 0.5) ball.vy = 0;
-  }
-
-  // walls
-  if(ball.x - ball.radius < 0){ ball.x = ball.radius; ball.vx = (ball.vx||0) * -0.8; }
-  if(ball.x + ball.radius > canvas.width){ ball.x = canvas.width - ball.radius; ball.vx = (ball.vx||0) * -0.8; }
+// إعادة ضبط الكورة
+function resetBall() {
+    ball.y = 50;
+    ball.velocity = 0;
 }
 
-/* simple loop */
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
+// زر الإيقاف
+document.getElementById("freezeBtn").onclick = () => {
+    freeze = !freeze;
+};
 
-/* -----------------------
-   UI controls + menus
-   ----------------------- */
-const massButton = document.getElementById('massButton');
-const massMenu   = document.getElementById('massMenu');
-const speedButton= document.getElementById('speedButton');
-const speedMenu  = document.getElementById('speedMenu');
-const pauseBtn   = document.getElementById('pauseButton');
-
-massButton.addEventListener('click', (e)=>{
-  e.stopPropagation();
-  massMenu.style.display = massMenu.style.display === 'block' ? 'none' : 'block';
-  speedMenu.style.display = 'none';
+// التفاعل باللمس للجوال
+canvas.addEventListener("touchstart", () => {
+    resetBall();
 });
-speedButton.addEventListener('click', (e)=>{
-  e.stopPropagation();
-  speedMenu.style.display = speedMenu.style.display === 'block' ? 'none' : 'block';
-  massMenu.style.display = 'none';
-});
-pauseBtn.addEventListener('click', (e)=>{
-  e.stopPropagation();
-  paused = !paused;
-  pauseBtn.innerText = paused ? 'Resume' : 'Pause';
 
-  // if resuming and ball was fully resting on floor, give a tiny nudge so physics continues visibly
-  if(!paused){
-    const floor = canvas.height - ball.radius;
-    if(ball.y >= floor - 0.01 && Math.abs(ball.vy) < 0.001){
-      // tiny upward nudge so gravity->movement shows (prevents "stuck-to-floor" visual)
-      ball.vy = -1.2;
+// ===== الرسم =====
+function update() {
+    if (!freeze) {
+        ball.velocity += ball.gravity;
+        ball.y += ball.velocity;
+
+        if (ball.y + ball.radius > groundY()) {
+            ball.y = groundY() - ball.radius;
+            ball.velocity = 0;
+        }
     }
-  }
-});
 
-// mass options
-massMenu.querySelectorAll('button.opt').forEach(btn=>{
-  btn.addEventListener('click', (e)=>{
-    const m = parseFloat(btn.dataset.mass);
-    const c = btn.dataset.color || '#e5e5e5';
-    setBallMass(m, c);
-    massMenu.style.display = 'none';
-    // if paused we keep paused, but ensure ball not pinned to floor:
-    if(paused){
-      // keep ball visually in place (we reset y already), won't fall until resume,
-      // user can unpause to see it drop.
-    }
-  });
-});
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// speed options
-speedMenu.querySelectorAll('button.opt').forEach(btn=>{
-  btn.addEventListener('click', (e)=>{
-    timeScale = parseFloat(btn.dataset.speed) || 1;
-    speedMenu.style.display = 'none';
-  });
-});
+    // رسم الأرضية
+    ctx.fillStyle = "#444";
+    ctx.fillRect(0, groundY(), canvas.width, 60);
 
-// close menus when clicking outside
-window.addEventListener('click', (e)=>{
-  const t = e.target;
-  if(!t.closest('#massMenu') && t !== massButton) massMenu.style.display = 'none';
-  if(!t.closest('#speedMenu') && t !== speedButton) speedMenu.style.display = 'none';
-});
+    // رسم الكورة
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#ff9900";
+    ctx.fill();
 
-// keyboard and touch helpers
-window.addEventListener('keydown', (e)=>{
-  if(e.code === 'Space'){
-    // reset ball to drop from top with current mass
-    ball.vy = 0;
-    ball.y = Math.min(canvas.height*0.12, 120);
-    // also auto-unpause so user sees movement
-    if(paused){ paused = false; pauseBtn.innerText = 'Pause'; }
-  }
-});
+    requestAnimationFrame(update);
+}
 
-// tap/click on canvas -> reset/drop but ignore clicks on buttons/panels
-canvas.addEventListener('click', (e)=>{
-  // if click landed on a menu/button the earlier handlers run; this will only run when clicking canvas area.
-  ball.vy = 0;
-  ball.y = Math.min(canvas.height*0.12, 120);
-  if(paused){ paused = false; pauseBtn.innerText = 'Pause'; }
-});
-
+update();
 </script>
+
 </body>
 </html>
+
+
 
 
 
