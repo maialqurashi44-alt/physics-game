@@ -1,213 +1,206 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Physics Game</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: #f0f0f0;
-            font-family: Arial, sans-serif;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simulation</title>
+<style>
+    body {
+        margin: 0;
+        background: #f5f5f5;
+        font-family: sans-serif;
+        overflow: hidden;
+    }
 
-        canvas {
-            display: block;
-        }
+    #controls {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #0002;
+        z-index: 10;
+    }
 
-        /* زر الإيقاف */
-        #freezeBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            font-size: 18px;
-            border: none;
-            background: #ffcc00;
-            border-radius: 10px;
-            cursor: pointer;
-        }
+    #massControls {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #0002;
+        z-index: 10;
+    }
 
-        /* تبويبات السرعه */
-        .speedBox {
-            position: absolute;
-            top: 90px;
-            left: 20px; /* مكان الكتلة القديم */
-            background: white;
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
-            width: 120px;
-        }
+    button, select {
+        padding: 8px;
+        margin: 5px 0;
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
 
-        /* تبويبات الكتلة */
-        .massBox {
-            position: absolute;
-            top: 90px;
-            right: 20px; /* الجهة الثانية */
-            background: white;
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
-            width: 120px;
-        }
+    canvas {
+        background: #eee;
+        display: block;
+    }
 
-        .optionBtn {
-            width: 100%;
-            margin-top: 8px;
-            padding: 10px;
-            border: none;
-            background: #eee;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .optionBtn:hover {
-            background: #ddd;
-        }
-    </style>
+    .label {
+        font-size: 14px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+</style>
 </head>
-
 <body>
 
-<button id="freezeBtn">إيقاف الوقت</button>
+<div id="controls">
+    <div class="label">السرعة</div>
+    <select id="speedSelect">
+        <option value="small">بطيئة</option>
+        <option value="medium">متوسطة</option>
+        <option value="fast">سريعة</option>
+    </select>
 
-<div class="speedBox">
-    <strong>السرعة</strong>
-    <button class="optionBtn" onclick="setSpeed(1)">بطيئة</button>
-    <button class="optionBtn" onclick="setSpeed(3)">متوسطة</button>
-    <button class="optionBtn" onclick="setSpeed(6)">سريعة</button>
+    <button id="toggleBtn">ايقاف / تشغيل</button>
 </div>
 
-<div class="massBox">
-    <strong>الكتلة</strong>
-    <button class="optionBtn" onclick="setMass(10)">صغيرة</button>
-    <button class="optionBtn" onclick="setMass(20)">متوسطة</button>
-    <button class="optionBtn" onclick="setMass(35)">كبيرة</button>
+<div id="massControls">
+    <div class="label">الكتلة</div>
+    <select id="massSelect">
+        <option value="small">صغيرة</option>
+        <option value="medium">متوسطة</option>
+        <option value="large">كبيرة</option>
+    </select>
 </div>
 
-<canvas id="gameCanvas"></canvas>
+<canvas id="myCanvas"></canvas>
+
 <script>
-// ===== الإعدادات الأساسية =====
-const canvas = document.getElementById("gameCanvas");
+const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
-// توسيع الكانفس لكامل الشاشة
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.onresize = resizeCanvas;
 
-// الأرضية — دائمًا أسفل الشاشة
-let groundY = () => canvas.height - 60;
+let y = 50;
+let velocity = 0;
+let gravity = 0.3;
+let bouncing = 0.75;
+let radius = 30;
+let mass = 1;
+let running = true;
 
-// إعدادات الكورة
-let ball = {
-    x: canvas.width / 2,
-    y: 50,
-    radius: 20,
-    mass: 20,
-    velocity: 0,
-    gravity: 0.6
+let lastY = y;
+let stableCounter = 0;
+
+function updateMass(value) {
+    if (value === "small") mass = 1;
+    if (value === "medium") mass = 2;
+    if (value === "large") mass = 3;
+}
+
+function updateSpeed(value) {
+    if (value === "small") gravity = 0.2;
+    if (value === "medium") gravity = 0.35;
+    if (value === "fast") gravity = 0.55;
+}
+
+document.getElementById("massSelect").onchange = (e) => {
+    updateMass(e.target.value);
+    resetBall();
 };
 
-let freeze = false;
-
-// تغيير السرعة
-function setSpeed(v) {
-    ball.gravity = v;
+document.getElementById("speedSelect").onchange = (e) => {
+    updateSpeed(e.target.value);
     resetBall();
-}
+};
 
-// تغيير الكتلة
-function setMass(m) {
-    ball.mass = m;
-    ball.radius = m / 2;
-    resetBall();
-}
+document.getElementById("toggleBtn").onclick = () => {
+    running = !running;
+};
 
-// إعادة ضبط الكورة
 function resetBall() {
-    ball.y = 50;
-    ball.velocity = 0;
+    y = 50;
+    velocity = 0;
 }
 
-// زر الإيقاف
-document.getElementById("freezeBtn").onclick = () => {
-    freeze = !freeze;
-};
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#3b82f6";
+    ctx.fill();
+    ctx.closePath();
+}
 
-// لمس الجوال يعيد الكورة
-canvas.addEventListener("touchstart", () => {
-    resetBall();
-});
+function drawText() {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "black";
 
-// ===== التحديث والرسم =====
-function update() {
+    // الحركة فوق الكرة
+    ctx.fillText("السرعة: " + velocity.toFixed(2), canvas.width / 2 - 50, y - radius - 20);
+    
+    let momentum = velocity * mass;
 
-    if (!freeze) {
-        // تسارع السقوط
-        ball.velocity += ball.gravity;
-        ball.y += ball.velocity;
+    // لو وقفت الكرة نخلي الاثنين صفر
+    if (Math.abs(velocity) < 0.001) {
+        momentum = 0;
+    }
 
-        // ارتطام بالأرض
-        if (ball.y + ball.radius > groundY()) {
-            ball.y = groundY() - ball.radius;
-            ball.velocity *= -0.35; // ارتداد بسيط
+    ctx.fillText("الزخم: " + momentum.toFixed(2), canvas.width / 2 - 50, y - radius - 45);
+}
+
+function simulate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (running) {
+        velocity += gravity;
+        y += velocity;
+
+        if (y + radius > canvas.height) {
+            y = canvas.height - radius;
+            velocity *= -bouncing;
+
+            // سطح مرن وسهل على الجوال
+            if (Math.abs(velocity) < 0.15) {
+                velocity = 0;
+            }
         }
     }
 
-    // 🔥 تصفير الحركة إذا شبه متوقفة
-    if (Math.abs(ball.velocity) < 0.2 && ball.y + ball.radius >= groundY() - 1) {
-        ball.velocity = 0;
+    // كشف إذا الكورة وقفت
+    if (Math.abs(y - lastY) < 0.05) {
+        stableCounter++;
+    } else {
+        stableCounter = 0;
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    lastY = y;
 
-    // رسم الأرضية
-    ctx.fillStyle = "#444";
-    ctx.fillRect(0, groundY(), canvas.width, 60);
-
-    // رسم الكورة
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#ff9900";
-    ctx.fill();
-
-    // حساب السرعة، الكتلة، الزخم
-    let speed = Math.abs(ball.velocity).toFixed(2);
-    let mass = ball.mass.toFixed(0);
-    let momentum = (ball.mass * ball.velocity).toFixed(2);
-
-    // 🔥 تصفير الزخم إذا السرعة صفر
-    if (ball.velocity === 0) {
-        momentum = "0.00";
+    // لو سكنت تماماً
+    if (stableCounter > 8) {
+        velocity = 0;
     }
 
-    // عرض الأرقام فوق الكورة
-    ctx.fillStyle = "#000";
-    ctx.font = "bold 20px Arial";
-    ctx.textAlign = "center";
+    drawBall();
+    drawText();
 
-    ctx.fillText(`Speed: ${speed}`, ball.x, ball.y - ball.radius - 50);
-    ctx.fillText(`Mass: ${mass}`, ball.x, ball.y - ball.radius - 25);
-    ctx.fillText(`Momentum: ${momentum}`, ball.x, ball.y - ball.radius);
-
-    requestAnimationFrame(update);
+    requestAnimationFrame(simulate);
 }
 
-update();
+simulate();
 </script>
-
-
-
 
 </body>
 </html>
+
+
 
 
 
