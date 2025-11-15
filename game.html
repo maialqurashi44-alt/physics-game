@@ -8,7 +8,7 @@
 <style>
     body {
         margin: 0;
-        background: #eee; /* رجعت الخلفية */
+        background: #eee;
         overflow: hidden;
         font-family: sans-serif;
     }
@@ -24,11 +24,11 @@
     }
 
     #controls {
-        left: 10px; /* السرعات يسار */
+        left: 10px;
     }
 
     #massControls {
-        right: 10px; /* الكتلة يمين */
+        right: 10px;
     }
 
     button, select {
@@ -79,7 +79,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.onresize = resizeCanvas;
 
-// المتغيرات الأساسية
+// المتغيرات
 let y = 50;
 let velocity = 0;
 let gravity = 0.3;
@@ -90,7 +90,7 @@ let running = true;
 
 let lastY = y;
 let stableCounter = 0;
-let grounded = false; // نعرف إذا هي على الأرض
+let grounded = false;
 
 // تحديث الكتلة
 function updateMass(v) {
@@ -138,14 +138,18 @@ function drawText(){
 
     let momentum = velocity * mass;
 
-    // إذا الكرة واقفة على الأرض + مستقرة → صفر
+    // لحظة السكون الحقيقي على الأرض
     if (grounded && Math.abs(velocity) < 0.01) {
         momentum = 0;
         velocity = 0;
     }
 
-    ctx.fillText("السرعة: " + velocity.toFixed(2), canvas.width/2 - 50, y - radius - 20);
-    ctx.fillText("الزخم: " + momentum.toFixed(2), canvas.width/2 - 50, y - radius - 45);
+    const x = canvas.width/2 - 50;
+    const baseY = y - radius - 20;
+
+    ctx.fillText("السرعة: " + velocity.toFixed(2), x, baseY);
+    ctx.fillText("الزخم: " + momentum.toFixed(2), x, baseY - 25);
+    ctx.fillText("الكتلة: " + mass.toFixed(0), x, baseY - 50);  // ← رجّعت الكتلة
 }
 
 // المحاكاة
@@ -156,14 +160,12 @@ function simulate(){
         velocity += gravity;
         y += velocity;
 
-        // الأرضية
         if (y + radius >= canvas.height){
             y = canvas.height - radius;
             velocity *= -bouncing;
 
             grounded = true;
 
-            // لو الارتداد بسيط جدًا → تعتبر واقفة
             if (Math.abs(velocity) < 0.15){
                 velocity = 0;
             }
@@ -172,7 +174,6 @@ function simulate(){
         }
     }
 
-    // كشف الثبات
     if (Math.abs(y - lastY) < 0.05){
         stableCounter++;
     } else {
@@ -181,7 +182,6 @@ function simulate(){
 
     lastY = y;
 
-    // إذا مستقرة وملامسة الأرض → سرعة = صفر
     if (grounded && stableCounter > 8){
         velocity = 0;
     }
@@ -197,6 +197,8 @@ simulate();
 
 </body>
 </html>
+
+
 
 
 
